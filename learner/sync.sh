@@ -15,6 +15,9 @@ cd "$REPO_DIR" || {
     exit 1
 }
 
+# 确保使用 SSH remote（避免 HTTPS 认证问题）
+git remote set-url origin git@github.com:Edwardsamaxl/knowledge-database.git 2>/dev/null || true
+
 # 检查是否有变更（包括未跟踪文件）
 if git diff --quiet && git diff --staged --quiet && [ -z "$(git ls-files --others --exclude-standard learner/)" ]; then
     echo "$(date '+%Y-%m-%d %H:%M:%S') INFO: No changes to sync" >> "$LOG_FILE"
@@ -29,6 +32,8 @@ fi
 
 # 添加 learner 目录所有变更
 git add learner/
+# 排除 sync log，防止无限循环
+git reset HEAD learner/sync.log 2>/dev/null || true
 
 # 生成提交信息（包含变更摘要）
 TIMESTAMP=$(date '+%Y-%m-%d %H:%M:%S')
